@@ -69,8 +69,5 @@
 ```
 
 #参考: https://github.com/hylexus/jt-808-protocol
-<<<<<<< HEAD
 ```
-=======
->>>>>>> 5afffe83122d159a47b49850b63f8dd71fdd92c4
 #参考: https://github.com/cjunflying/jt808
