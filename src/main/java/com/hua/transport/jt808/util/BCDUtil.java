@@ -1,6 +1,6 @@
 package com.hua.transport.jt808.util;
 
-public class BCD8421Operater {
+public class BCDUtil {
 
 	/**
 	 * BCD字节数组===>String

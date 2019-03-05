@@ -4,35 +4,40 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hua.transport.jt808.common.Consts;
-import com.hua.transport.jt808.util.BCD8421Operater;
-import com.hua.transport.jt808.util.BitOperator;
-import com.hua.transport.jt808.vo.PackageData;
-import com.hua.transport.jt808.vo.PackageData.MsgHeader;
-import com.hua.transport.jt808.vo.req.LocationInfoUploadMsg;
-import com.hua.transport.jt808.vo.req.TerminalRegisterMsg;
-import com.hua.transport.jt808.vo.req.TerminalRegisterMsg.TerminalRegInfo;
+import com.hua.transport.jt808.entity.DataPack;
+import com.hua.transport.jt808.entity.DataPack.PackHead;
+import com.hua.transport.jt808.entity.request.LocationPack;
+import com.hua.transport.jt808.entity.request.RegisterPack;
+import com.hua.transport.jt808.entity.request.RegisterPack.TerminalRegInfo;
+import com.hua.transport.jt808.util.BCDUtil;
+import com.hua.transport.jt808.util.BitUtil;
 
-public class MsgDecoder {
+/**
+ * 数据包解码器
+ * @author huaxl
+ *
+ */
+public class DataDecoder {
 
-	private static final Logger log = LoggerFactory.getLogger(MsgDecoder.class);
+	private static final Logger log = LoggerFactory.getLogger(DataDecoder.class);
 
-	private BitOperator bitOperator;
-	private BCD8421Operater bcd8421Operater;
+	private BitUtil bitUtil;
+	private BCDUtil bcdUtil;
 
-	public MsgDecoder() {
-		this.bitOperator = new BitOperator();
-		this.bcd8421Operater = new BCD8421Operater();
+	public DataDecoder() {
+		this.bitUtil = new BitUtil();
+		this.bcdUtil = new BCDUtil();
 	}
 
-	public PackageData bytes2PackageData(byte[] data) {
-		PackageData ret = new PackageData();
+	public DataPack bytes2PackageData(byte[] data) {
+		DataPack ret = new DataPack();
 
 		// 0. 终端套接字地址信息
 		// ret.setChannel(msg.getChannel());
 
 		// 1. 16byte 或 12byte 消息头
-		MsgHeader msgHeader = this.parseMsgHeaderFromBytes(data);
-		ret.setMsgHeader(msgHeader);
+		PackHead msgHeader = this.parseMsgHeaderFromBytes(data);
+		ret.setPackHead(msgHeader);
 
 		int msgBodyByteStartIndex = 12;
 		// 2. 消息体
@@ -43,34 +48,34 @@ public class MsgDecoder {
 
 		byte[] tmp = new byte[msgHeader.getMsgBodyLength()];
 		System.arraycopy(data, msgBodyByteStartIndex, tmp, 0, tmp.length);
-		ret.setMsgBodyBytes(tmp);
+		ret.setBodyBytes(tmp);
 
 		// 3. 去掉分隔符之后，最后一位就是校验码
 		// int checkSumInPkg =
 		// this.bitOperator.oneByteToInteger(data[data.length - 1]);
 		int checkSumInPkg = data[data.length - 1];
-		int calculatedCheckSum = this.bitOperator.getCheckSum4JT808(data, 0, data.length - 1);
+		int calculatedCheckSum = this.bitUtil.getCheckSum4JT808(data, 0, data.length - 1);
 		ret.setCheckSum(checkSumInPkg);
 		if (checkSumInPkg != calculatedCheckSum) {
-			log.warn("检验码不一致,msgid:{},pkg:{},calculated:{}", msgHeader.getMsgId(), checkSumInPkg, calculatedCheckSum);
+			log.warn("检验码不一致,msgid:{},pkg:{},calculated:{}", msgHeader.getId(), checkSumInPkg, calculatedCheckSum);
 		}
 		return ret;
 	}
 
-	private MsgHeader parseMsgHeaderFromBytes(byte[] data) {
-		MsgHeader msgHeader = new MsgHeader();
+	private PackHead parseMsgHeaderFromBytes(byte[] data) {
+		PackHead msgHeader = new PackHead();
 
 		// 1. 消息ID word(16)
 		// byte[] tmp = new byte[2];
 		// System.arraycopy(data, 0, tmp, 0, 2);
 		// msgHeader.setMsgId(this.bitOperator.twoBytesToInteger(tmp));
-		msgHeader.setMsgId(this.parseIntFromBytes(data, 0, 2));
+		msgHeader.setId(this.parseIntFromBytes(data, 0, 2));
 
 		// 2. 消息体属性 word(16)=================>
 		// System.arraycopy(data, 2, tmp, 0, 2);
 		// int msgBodyProps = this.bitOperator.twoBytesToInteger(tmp);
 		int msgBodyProps = this.parseIntFromBytes(data, 2, 2);
-		msgHeader.setMsgBodyPropsField(msgBodyProps);
+		msgHeader.setBodyPropsField(msgBodyProps);
 		// [ 0-9 ] 0000,0011,1111,1111(3FF)(消息体长度)
 		msgHeader.setMsgBodyLength(msgBodyProps & 0x3ff);
 		// [10-12] 0001,1100,0000,0000(1C00)(加密类型)
@@ -97,18 +102,18 @@ public class MsgDecoder {
 		// 有子包信息
 		if (msgHeader.isHasSubPackage()) {
 			// 消息包封装项字段
-			msgHeader.setPackageInfoField(this.parseIntFromBytes(data, 12, 4));
+			msgHeader.setInfoField(this.parseIntFromBytes(data, 12, 4));
 			// byte[0-1] 消息包总数(word(16))
 			// tmp = new byte[2];
 			// System.arraycopy(data, 12, tmp, 0, 2);
 			// msgHeader.setTotalSubPackage(this.bitOperator.twoBytesToInteger(tmp));
-			msgHeader.setTotalSubPackage(this.parseIntFromBytes(data, 12, 2));
+			msgHeader.setSubPackage(this.parseIntFromBytes(data, 12, 2));
 
 			// byte[2-3] 包序号(word(16)) 从 1 开始
 			// tmp = new byte[2];
 			// System.arraycopy(data, 14, tmp, 0, 2);
 			// msgHeader.setSubPackageSeq(this.bitOperator.twoBytesToInteger(tmp));
-			msgHeader.setSubPackageSeq(this.parseIntFromBytes(data, 12, 2));
+			msgHeader.setSubPackageSequeue(this.parseIntFromBytes(data, 12, 2));
 		}
 		return msgHeader;
 	}
@@ -121,7 +126,7 @@ public class MsgDecoder {
 		try {
 			byte[] tmp = new byte[lenth];
 			System.arraycopy(data, startIndex, tmp, 0, lenth);
-			return new String(tmp, Consts.string_charset);
+			return new String(tmp, Consts.DEFAULT_CHARSET);
 		} catch (Exception e) {
 			log.error("解析字符串出错:{}", e.getMessage());
 			e.printStackTrace();
@@ -137,7 +142,7 @@ public class MsgDecoder {
 		try {
 			byte[] tmp = new byte[lenth];
 			System.arraycopy(data, startIndex, tmp, 0, lenth);
-			return this.bcd8421Operater.bcd2String(tmp);
+			return this.bcdUtil.bcd2String(tmp);
 		} catch (Exception e) {
 			log.error("解析BCD(8421码)出错:{}", e.getMessage());
 			e.printStackTrace();
@@ -155,7 +160,7 @@ public class MsgDecoder {
 			final int len = length > 4 ? 4 : length;
 			byte[] tmp = new byte[len];
 			System.arraycopy(data, startIndex, tmp, 0, len);
-			return bitOperator.byteToInteger(tmp);
+			return bitUtil.byteToInteger(tmp);
 		} catch (Exception e) {
 			log.error("解析整数出错:{}", e.getMessage());
 			e.printStackTrace();
@@ -163,9 +168,9 @@ public class MsgDecoder {
 		}
 	}
 
-	public TerminalRegisterMsg toTerminalRegisterMsg(PackageData packageData) {
-		TerminalRegisterMsg ret = new TerminalRegisterMsg(packageData);
-		byte[] data = ret.getMsgBodyBytes();
+	public RegisterPack toTerminalRegisterMsg(DataPack packageData) {
+		RegisterPack ret = new RegisterPack(packageData);
+		byte[] data = ret.getBodyBytes();
 
 		TerminalRegInfo body = new TerminalRegInfo();
 
@@ -199,9 +204,9 @@ public class MsgDecoder {
 	}
 
 
-	public LocationInfoUploadMsg toLocationInfoUploadMsg(PackageData packageData) {
-		LocationInfoUploadMsg ret = new LocationInfoUploadMsg(packageData);
-		final byte[] data = ret.getMsgBodyBytes();
+	public LocationPack toLocationInfoUploadMsg(DataPack packageData) {
+		LocationPack ret = new LocationPack(packageData);
+		final byte[] data = ret.getBodyBytes();
 
 		// 1. byte[0-3] 报警标志(DWORD(32))
 		ret.setWarningFlagField(this.parseIntFromBytes(data, 0, 3));
@@ -237,7 +242,7 @@ public class MsgDecoder {
 			final int len = length > 4 ? 4 : length;
 			byte[] tmp = new byte[len];
 			System.arraycopy(data, startIndex, tmp, 0, len);
-			return bitOperator.byte2Float(tmp);
+			return bitUtil.byte2Float(tmp);
 		} catch (Exception e) {
 			log.error("解析浮点数出错:{}", e.getMessage());
 			e.printStackTrace();

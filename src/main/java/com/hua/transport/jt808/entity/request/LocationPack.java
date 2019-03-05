@@ -1,9 +1,9 @@
-package com.hua.transport.jt808.vo.req;
+package com.hua.transport.jt808.entity.request;
 
 
 import java.util.Date;
 
-import com.hua.transport.jt808.vo.PackageData;
+import com.hua.transport.jt808.entity.DataPack;
 
 /**
  * 位置信息汇报消息
@@ -11,7 +11,7 @@ import com.hua.transport.jt808.vo.PackageData;
  * @author huaxl
  *
  */
-public class LocationInfoUploadMsg extends PackageData {
+public class LocationPack extends DataPack {
 	// 告警信息
 	// byte[0-3]
 	private int warningFlagField;
@@ -33,15 +33,15 @@ public class LocationInfoUploadMsg extends PackageData {
 	// GMT+8 时间，本标准中之后涉及的时间均采用此时区
 	private Date time;
 
-	public LocationInfoUploadMsg() {
+	public LocationPack() {
 	}
 
-	public LocationInfoUploadMsg(PackageData packageData) {
+	public LocationPack(DataPack packageData) {
 		this();
 		this.channel = packageData.getChannel();
 		this.checkSum = packageData.getCheckSum();
-		this.msgBodyBytes = packageData.getMsgBodyBytes();
-		this.msgHeader = packageData.getMsgHeader();
+		this.bodyBytes = packageData.getBodyBytes();
+		this.packHead = packageData.getPackHead();
 	}
 
 	public float getLatitude() {

@@ -3,7 +3,7 @@ package com.hua.transport.jt808.service.codec;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hua.transport.jt808.util.HexStringUtils;
+import com.hua.transport.jt808.util.HexUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,7 +16,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
  * @author huaxl
  *
  */
-public class Decoder4LoggingOnly extends ByteToMessageDecoder {
+public class LogDecoder extends ByteToMessageDecoder {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -35,6 +35,6 @@ public class Decoder4LoggingOnly extends ByteToMessageDecoder {
 	private String buf2Str(ByteBuf in) {
 		byte[] dst = new byte[in.readableBytes()];
 		in.getBytes(0, dst);
-		return HexStringUtils.toHexString(dst);
+		return HexUtil.toHexString(dst);
 	}
 }

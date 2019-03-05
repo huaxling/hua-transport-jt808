@@ -1,14 +1,12 @@
 package com.hua.transport.jt808.server;
 
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import java.util.concurrent.TimeUnit;
 import com.hua.transport.jt808.common.Consts;
-import com.hua.transport.jt808.service.codec.Decoder4LoggingOnly;
+import com.hua.transport.jt808.service.codec.LogDecoder;
 import com.hua.transport.jt808.service.handler.TCPServerHandler;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -25,11 +23,11 @@ import io.netty.util.concurrent.Future;
 public class TCPServer {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
-	private volatile boolean isRunning = false;
-
+	
+	private int port;
 	private EventLoopGroup bossGroup = null;
 	private EventLoopGroup workerGroup = null;
-	private int port;
+	private volatile boolean isRunning = false;
 
 	public TCPServer() {
 	}
@@ -50,9 +48,9 @@ public class TCPServer {
 					public void initChannel(SocketChannel ch) throws Exception {
 						
 						ch.pipeline().addLast("idleStateHandler",
-								new IdleStateHandler(Consts.tcp_client_idle_minutes, 0, 0, TimeUnit.MINUTES));
+								new IdleStateHandler(Consts.TCP_CLIENT_IDLE, 0, 0, TimeUnit.MINUTES));
 						
-						ch.pipeline().addLast(new Decoder4LoggingOnly());
+						ch.pipeline().addLast(new LogDecoder());
 						
 						// 1024表示单条消息的最大长度，解码器在查找分隔符的时候，达到该长度还没找到的话会抛异常
 						ch.pipeline().addLast(
@@ -112,13 +110,5 @@ public class TCPServer {
 
 	private String getName() {
 		return "TCP-Server";
-	}
-
-	public static void main(String[] args) throws Exception {
-		TCPServer server = new TCPServer(20048);
-		server.startServer();
-
-		// Thread.sleep(3000);
-		// server.stopServer();
 	}
 }

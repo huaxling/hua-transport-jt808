@@ -16,14 +16,16 @@ import org.slf4j.LoggerFactory;
  * @author huaxl
  *
  */
-public class JT808ProtocolUtils {
+public class JT808Util {
+	
 	private final Logger log = LoggerFactory.getLogger(getClass());
-	private BitOperator bitOperator;
-	private BCD8421Operater bcd8421Operater;
+	
+	private BitUtil bitOperator;
+	private BCDUtil bcd8421Operater;
 
-	public JT808ProtocolUtils() {
-		this.bitOperator = new BitOperator();
-		this.bcd8421Operater = new BCD8421Operater();
+	public JT808Util() {
+		this.bitOperator = new BitUtil();
+		this.bcd8421Operater = new BCDUtil();
 	}
 
 	/**

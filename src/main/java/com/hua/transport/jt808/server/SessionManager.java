@@ -8,15 +8,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-import com.hua.transport.jt808.vo.Session;
+import com.hua.transport.jt808.entity.Session;
 
 public class SessionManager {
 
-	private static volatile SessionManager instance = null;
+	
 	// netty生成的sessionID和Session的对应关系
 	private Map<String, Session> sessionIdMap;
 	// 终端手机号和netty生成的sessionID的对应关系
 	private Map<String, String> phoneMap;
+	
+	private static volatile SessionManager instance = null;
 
 	public static SessionManager getInstance() {
 		if (instance == null) {

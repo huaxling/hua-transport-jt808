@@ -3,7 +3,7 @@ package com.hua.transport.jt808.util;
 import java.util.Arrays;
 import java.util.List;
 
-public class BitOperator {
+public class BitUtil {
 
 	/**
 	 * 把一个整形该为byte

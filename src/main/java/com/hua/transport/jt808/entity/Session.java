@@ -1,4 +1,4 @@
-package com.hua.transport.jt808.vo;
+package com.hua.transport.jt808.entity;
 
 import java.net.SocketAddress;
 

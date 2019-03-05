@@ -1,6 +1,6 @@
-package com.hua.transport.jt808.vo.resp;
+package com.hua.transport.jt808.entity.response;
 
-public class TerminalRegisterMsgRespBody {
+public class RegisterBodyPack {
 
 	public static final byte success = 0;
 	public static final byte car_already_registered = 1;
@@ -19,7 +19,7 @@ public class TerminalRegisterMsgRespBody {
 	// byte[3-x] 鉴权码(STRING) 只有在成功后才有该字段
 	private String replyToken;
 
-	public TerminalRegisterMsgRespBody() {
+	public RegisterBodyPack() {
 	}
 
 	public int getReplyFlowId() {

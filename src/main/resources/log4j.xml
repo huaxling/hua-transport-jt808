@@ -10,7 +10,7 @@
 	</appender>
 
 	<appender name="errorAppender"
-		class="com.hua.transport.jt808.common.ClassificationLogAppender">
+		class="com.hua.transport.jt808.common.LogAppender">
 		<param name="File" value="./logs/hua-jt808/error.log" />
 		<param name="append" value="true" />
 		<param name="DatePattern" value="'-'yyyy-MM-dd'.log'" />
@@ -25,7 +25,7 @@
 		</filter>
 	</appender>
 	<appender name="infoAppender"
-		class="com.hua.transport.jt808.common.ClassificationLogAppender">
+		class="com.hua.transport.jt808.common.LogAppender">
 		<param name="File" value="./logs/hua-jt808/info.log" />
 		<param name="Append" value="true" />
 		<param name="DatePattern" value="'-'yyyy-MM-dd'.log'" />
@@ -40,7 +40,7 @@
 		</filter>
 	</appender>
 	<appender name="warnAppender"
-		class="com.hua.transport.jt808.common.ClassificationLogAppender">
+		class="com.hua.transport.jt808.common.LogAppender">
 		<param name="File" value="./logs/hua-jt808/warn.log" />
 		<param name="Append" value="true" />
 		<param name="DatePattern" value="'-'yyyy-MM-dd'.log'" />
@@ -55,7 +55,7 @@
 		</filter>
 	</appender>
 	<appender name="debugAppender"
-		class="com.hua.transport.jt808.common.ClassificationLogAppender">
+		class="com.hua.transport.jt808.common.LogAppender">
 		<param name="File" value="./logs/hua-jt808/debug.log" />
 		<param name="Append" value="true" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />

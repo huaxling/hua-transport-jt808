@@ -3,16 +3,11 @@ package com.hua.transport.jt808.service.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hua.transport.jt808.common.Consts;
+import com.hua.transport.jt808.entity.DataPack;
+import com.hua.transport.jt808.entity.Session;
+import com.hua.transport.jt808.entity.DataPack.PackHead;
 import com.hua.transport.jt808.server.SessionManager;
-import com.hua.transport.jt808.service.TerminalMsgProcessService;
-import com.hua.transport.jt808.service.codec.MsgDecoder;
-import com.hua.transport.jt808.vo.PackageData;
-import com.hua.transport.jt808.vo.Session;
-import com.hua.transport.jt808.vo.PackageData.MsgHeader;
-import com.hua.transport.jt808.vo.req.LocationInfoUploadMsg;
-import com.hua.transport.jt808.vo.req.TerminalAuthenticationMsg;
-import com.hua.transport.jt808.vo.req.TerminalRegisterMsg;
+import com.hua.transport.jt808.service.codec.DataDecoder;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -25,14 +20,13 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter { // (1)
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
+	private final DataDecoder decoder;
 	private final SessionManager sessionManager;
-	private final MsgDecoder decoder;
-	private TerminalMsgProcessService msgProcessService;
+	
 
 	public TCPServerHandler() {
+		this.decoder = new DataDecoder();
 		this.sessionManager = SessionManager.getInstance();
-		this.decoder = new MsgDecoder();
-		this.msgProcessService = new TerminalMsgProcessService();
 	}
 	
 	/**
@@ -40,69 +34,22 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter { // (1)
 	 * 处理业务逻辑
 	 * 
 	 * @param packageData
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 * 
 	 */
-	private void processPackageData(PackageData packageData) {
-		final MsgHeader header = packageData.getMsgHeader();
-
+	private void processPackageData(DataPack packageData) throws InstantiationException, IllegalAccessException {
 		
-		if (Consts.msg_id_terminal_heart_beat == header.getMsgId()) {	// 1. 终端心跳-消息体为空 ==> 平台通用应答
-			logger.info(">>>>>[终端心跳],phone={},flowid={}", header.getTerminalPhone(), header.getFlowId());
-			try {
-				this.msgProcessService.processTerminalHeartBeatMsg(packageData);
-				logger.info("<<<<<[终端心跳],phone={},flowid={}", header.getTerminalPhone(), header.getFlowId());
-			} catch (Exception e) {
-				logger.error("<<<<<[终端心跳]处理错误,phone={},flowid={},err={}", header.getTerminalPhone(), header.getFlowId(),
-						e.getMessage());
-				e.printStackTrace();
-			}
-		}else if (Consts.msg_id_terminal_authentication == header.getMsgId()) {	// 5. 终端鉴权 ==> 平台通用应答
-			logger.info(">>>>>[终端鉴权],phone={},flowid={}", header.getTerminalPhone(), header.getFlowId());
-			try {
-				TerminalAuthenticationMsg authenticationMsg = new TerminalAuthenticationMsg(packageData);
-				this.msgProcessService.processAuthMsg(authenticationMsg);
-				logger.info("<<<<<[终端鉴权],phone={},flowid={}", header.getTerminalPhone(), header.getFlowId());
-			} catch (Exception e) {
-				logger.error("<<<<<[终端鉴权]处理错误,phone={},flowid={},err={}", header.getTerminalPhone(), header.getFlowId(),
-						e.getMessage());
-				e.printStackTrace();
-			}
-		}else if (Consts.msg_id_terminal_register == header.getMsgId()) {	// 6. 终端注册 ==> 终端注册应答
-			logger.info(">>>>>[终端注册],phone={},flowid={}", header.getTerminalPhone(), header.getFlowId());
-			try {
-				TerminalRegisterMsg msg = this.decoder.toTerminalRegisterMsg(packageData);
-				this.msgProcessService.processRegisterMsg(msg);
-				logger.info("<<<<<[终端注册],phone={},flowid={}", header.getTerminalPhone(), header.getFlowId());
-			} catch (Exception e) {
-				logger.error("<<<<<[终端注册]处理错误,phone={},flowid={},err={}", header.getTerminalPhone(), header.getFlowId(),
-						e.getMessage());
-				e.printStackTrace();
-			}
-		}else if (Consts.msg_id_terminal_log_out == header.getMsgId()) {	// 7. 终端注销(终端注销数据消息体为空) ==> 平台通用应答
-			logger.info(">>>>>[终端注销],phone={},flowid={}", header.getTerminalPhone(), header.getFlowId());
-			try {
-				this.msgProcessService.processTerminalLogoutMsg(packageData);
-				logger.info("<<<<<[终端注销],phone={},flowid={}", header.getTerminalPhone(), header.getFlowId());
-			} catch (Exception e) {
-				logger.error("<<<<<[终端注销]处理错误,phone={},flowid={},err={}", header.getTerminalPhone(), header.getFlowId(),
-						e.getMessage());
-				e.printStackTrace();
-			}
-		}else if (Consts.msg_id_terminal_location_info_upload == header.getMsgId()) {	// 3. 位置信息汇报 ==> 平台通用应答
-			logger.info(">>>>>[位置信息],phone={},flowid={}", header.getTerminalPhone(), header.getFlowId());
-			try {
-				LocationInfoUploadMsg locationInfoUploadMsg = this.decoder.toLocationInfoUploadMsg(packageData);
-				System.out.println(locationInfoUploadMsg);
-				this.msgProcessService.processLocationInfoUploadMsg(locationInfoUploadMsg);
-				logger.info("<<<<<[位置信息],phone={},flowid={}", header.getTerminalPhone(), header.getFlowId());
-			} catch (Exception e) {
-				logger.error("<<<<<[位置信息]处理错误,phone={},flowid={},err={}", header.getTerminalPhone(), header.getFlowId(),
-						e.getMessage());
-				e.printStackTrace();
-			}
+		PackHead header = packageData.getPackHead();
+		Integer msgId = header.getId();
+		
+		logger.info("消息头部：msgid={}, phone={}, flowid={}", msgId, header.getTerminalPhone(), header.getFlowId());
+		
+		MessageHandler handler = MessageHandlerFactory.getInstance(msgId);
+		if(handler != null){
+			handler.process(packageData);
 		}else {	// 其他情况
-			logger.error(">>>>>>[未知消息类型],phone={},msgId={},package={}", header.getTerminalPhone(), header.getMsgId(),
-					packageData);
+			logger.error("[未知消息类型],msgId={},phone={},package={}", header.getId(), header.getTerminalPhone(), packageData);
 		}
 	}
 
@@ -121,10 +68,13 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter { // (1)
 			buf.readBytes(bs);
 
 			// 字节数据转换为针对于808消息结构的实体类
-			PackageData pkg = this.decoder.bytes2PackageData(bs);
+			DataPack pkg = this.decoder.bytes2PackageData(bs);
 			// 引用channel,以便回送数据给硬件
 			pkg.setChannel(ctx.channel());
 			processPackageData(pkg);
+		}catch (Exception e) {
+			// TODO: handle exception
+			logger.error("消息处理异常", e);
 		} finally {
 			release(msg);
 		}

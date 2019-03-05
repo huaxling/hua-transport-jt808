@@ -1,6 +1,6 @@
-package com.hua.transport.jt808.vo.resp;
+package com.hua.transport.jt808.entity.response;
 
-public class ServerCommonRespMsgBody {
+public class ServerBodyPack {
 
 	public static final byte success = 0;
 	public static final byte failure = 1;
@@ -21,10 +21,10 @@ public class ServerCommonRespMsgBody {
 	 */
 	private byte replyCode;
 
-	public ServerCommonRespMsgBody() {
+	public ServerBodyPack() {
 	}
 
-	public ServerCommonRespMsgBody(int replyFlowId, int replyId, byte replyCode) {
+	public ServerBodyPack(int replyFlowId, int replyId, byte replyCode) {
 		super();
 		this.replyFlowId = replyFlowId;
 		this.replyId = replyId;

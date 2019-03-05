@@ -1,8 +1,8 @@
-package com.hua.transport.jt808.vo.req;
+package com.hua.transport.jt808.entity.request;
 
 import java.util.Arrays;
 
-import com.hua.transport.jt808.vo.PackageData;
+import com.hua.transport.jt808.entity.DataPack;
 
 /**
  * 终端注册消息
@@ -10,19 +10,19 @@ import com.hua.transport.jt808.vo.PackageData;
  * @author huaxl
  *
  */
-public class TerminalRegisterMsg extends PackageData {
+public class RegisterPack extends DataPack {
 
 	private TerminalRegInfo terminalRegInfo;
 
-	public TerminalRegisterMsg() {
+	public RegisterPack() {
 	}
 
-	public TerminalRegisterMsg(PackageData packageData) {
+	public RegisterPack(DataPack packageData) {
 		this();
 		this.channel = packageData.getChannel();
 		this.checkSum = packageData.getCheckSum();
-		this.msgBodyBytes = packageData.getMsgBodyBytes();
-		this.msgHeader = packageData.getMsgHeader();
+		this.bodyBytes = packageData.getBodyBytes();
+		this.packHead = packageData.getPackHead();
 	}
 
 	public TerminalRegInfo getTerminalRegInfo() {
@@ -35,8 +35,8 @@ public class TerminalRegisterMsg extends PackageData {
 
 	@Override
 	public String toString() {
-		return "TerminalRegisterMsg [terminalRegInfo=" + terminalRegInfo + ", msgHeader=" + msgHeader
-				+ ", msgBodyBytes=" + Arrays.toString(msgBodyBytes) + ", checkSum=" + checkSum + ", channel=" + channel
+		return "TerminalRegisterMsg [terminalRegInfo=" + terminalRegInfo + ", msgHeader=" + packHead
+				+ ", msgBodyBytes=" + Arrays.toString(bodyBytes) + ", checkSum=" + checkSum + ", channel=" + channel
 				+ "]";
 	}
 

@@ -1,10 +1,13 @@
-package com.hua.transport.jt808.service;
+package com.hua.transport.jt808.service.handler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hua.transport.jt808.entity.DataPack;
+import com.hua.transport.jt808.entity.Session;
 import com.hua.transport.jt808.server.SessionManager;
-import com.hua.transport.jt808.vo.Session;
+import com.hua.transport.jt808.service.codec.DataDecoder;
+import com.hua.transport.jt808.service.codec.DataEncoder;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -12,13 +15,17 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
-public class BaseMsgProcessService {
+public abstract class MessageHandler {
 
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
+	protected DataEncoder msgEncoder;
+	protected DataDecoder decoder;
 	protected SessionManager sessionManager;
 
-	public BaseMsgProcessService() {
+	public MessageHandler() {
+		this.msgEncoder = new DataEncoder();
+		this.decoder = new DataDecoder();
 		this.sessionManager = SessionManager.getInstance();
 	}
 
@@ -48,4 +55,6 @@ public class BaseMsgProcessService {
 		return this.getFlowId(channel, 0);
 	}
 
+	
+	public abstract void process(DataPack req);
 }
