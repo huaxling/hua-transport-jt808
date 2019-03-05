@@ -68,4 +68,5 @@
 7e # 标识位
 ```
 
+#参考: https://github.com/hylexus/jt-808-protocol
 #参考: https://github.com/cjunflying/jt808
